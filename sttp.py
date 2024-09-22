@@ -6,7 +6,7 @@ import pyttsx3
 engine = pyttsx3.init()
 
 # Text you want to convert to speech
-text = "Hello Ladouce you havea fat ass and tight pussy"
+text = "Hello"
 
 # Convert text to speech
 engine.say(text)
