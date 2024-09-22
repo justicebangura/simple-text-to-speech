@@ -7,7 +7,7 @@ import io
 import uuid
 from pydub import AudioSegment
 
-st.title("Text-to-Speech")
+st.title("Text-to-Speech - STUDY HELP")
 
 # File uploader
 uploaded_file = st.file_uploader("Upload a PDF or Text file", type=["pdf", "txt"])
