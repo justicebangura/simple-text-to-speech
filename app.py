@@ -6,11 +6,13 @@ import os
 import io
 import uuid
 from pydub import AudioSegment
+import language_tool_python
+import re
 
 st.title("Text-to-Speech - STUDY HELP")
 
 # File uploader
-uploaded_file = st.file_uploader("Upload a PDF or Text file", type=["pdf", "txt"])
+uploaded_file = st.file_uploader("Upload a PDF or Text file - few pages ", type=["pdf", "txt"])
 
 # Optional: Allow user to input text directly
 user_input = st.text_area("Or enter text here:")
@@ -34,6 +36,19 @@ def extract_text(file):
         return str(file.read(), "utf-8")
     else:
         return None
+
+def normalize_text(text):
+    # Replace multiple spaces with a single space
+    text = re.sub(r'\s+', ' ', text)
+    # Remove non-ASCII characters
+    text = text.encode('ascii', 'ignore').decode('ascii')
+    return text.strip()
+
+def correct_grammar(text):
+    tool = language_tool_python.LanguageTool('en-US')
+    matches = tool.check(text)
+    corrected_text = language_tool_python.utils.correct(text, matches)
+    return corrected_text
 
 def split_text(text, max_length):
     return [text[i:i+max_length] for i in range(0, len(text), max_length)]
@@ -75,17 +90,23 @@ def text_to_speech(text, max_length, progress_bar, status_text, output_option):
 if uploaded_file is not None:
     text = extract_text(uploaded_file)
     if text:
-        st.success("Text extracted from the uploaded file.")
+        # Normalize and correct text
+        text = normalize_text(text)
+        text = correct_grammar(text)
+        st.success("Text extracted and corrected.")
     else:
         st.error("Failed to extract text from the file.")
         st.stop()
 elif user_input:
     text = user_input
+    # Normalize and correct text
+    text = normalize_text(text)
+    text = correct_grammar(text)
 else:
     text = None
 
 if text:
-    st.text_area("Extracted Text", text, height=200)
+    st.text_area("Corrected Text", text, height=200)
     if st.button("Convert to Speech"):
         with st.spinner("Converting text to speech..."):
             progress_bar = st.progress(0)
