@@ -6,13 +6,13 @@ import os
 import io
 import uuid
 from pydub import AudioSegment
-import language_tool_python
+import requests
 import re
 
 st.title("Text-to-Speech - STUDY HELP")
 
 # File uploader
-uploaded_file = st.file_uploader("Upload a PDF or Text file - few pages ", type=["pdf", "txt"])
+uploaded_file = st.file_uploader("Upload a PDF or Text file", type=["pdf", "txt"])
 
 # Optional: Allow user to input text directly
 user_input = st.text_area("Or enter text here:")
@@ -45,9 +45,20 @@ def normalize_text(text):
     return text.strip()
 
 def correct_grammar(text):
-    tool = language_tool_python.LanguageTool('en-US')
-    matches = tool.check(text)
-    corrected_text = language_tool_python.utils.correct(text, matches)
+    url = 'https://api.languagetool.org/v2/check'
+    data = {
+        'text': text,
+        'language': 'en-US'
+    }
+    response = requests.post(url, data=data)
+    result = response.json()
+    corrected_text = text
+    for match in reversed(result['matches']):
+        start = match['offset']
+        end = start + match['length']
+        if match['replacements']:
+            replacement = match['replacements'][0]['value']
+            corrected_text = corrected_text[:start] + replacement + corrected_text[end:]
     return corrected_text
 
 def split_text(text, max_length):
